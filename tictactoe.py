@@ -3,9 +3,11 @@ Tic Tac Toe Player
 """
 
 from dbm import dumb
+from json.encoder import INFINITY
 import math
 from queue import Empty
 from ssl import VerifyFlags
+import copy
 
 X = "X"
 O = "O"
@@ -16,9 +18,7 @@ def initial_state():
     """
     Returns starting state of the board.
     """
-    return [[EMPTY, EMPTY, EMPTY],
-            [EMPTY, EMPTY, EMPTY],
-            [EMPTY, EMPTY, EMPTY]]
+    return [[EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY], [EMPTY, EMPTY, EMPTY]]
 
 
 def player(board):
@@ -26,7 +26,7 @@ def player(board):
     Returns player who has the next turn on a board.
     In initial state, X gets first move
 
-    The player function should take a “board” state as input, 
+    The player function should take a “board” state as input,
     and return which player’s turn it is (either X or O)
     In the initial game state, X gets the first move. Subsequently, the player alternates with each additional move.
     Any return value is acceptable if a terminal board is provided as input (i.e., the game is already over).
@@ -41,24 +41,24 @@ def player(board):
     # To be potentially optimized:
     for row in board:
         for element in row:
-            if element == 'X':
+            if element == "X":
                 count_x += 1
-            elif element == 'O':
+            elif element == "O":
                 count_o += 1
             else:
                 continue
-    return 'O' if count_x > count_o else "X"
-    #raise NotImplementedError
+    return "O" if count_x > count_o else "X"
+    # raise NotImplementedError
 
 
 def actions(board):
     """
     Returns set of all possible actions (i, j) available on the board.
 
-    The actions function should return a set of all of the possible actions 
+    The actions function should return a set of all of the possible actions
     that can be taken on a given board.
-    Each action should be represented as a tuple (i, j) where ‘i’ corresponds 
-    to the row of the move (0,1 or 2) and ‘j’ corresponds to which cell in 
+    Each action should be represented as a tuple (i, j) where ‘i’ corresponds
+    to the row of the move (0,1 or 2) and ‘j’ corresponds to which cell in
     the row corresponds to the move (also 0, 1 or 2).
     Possible moves are any cells on the board that do not already have an ‘X’ or an ‘O’  in them.
     Any return value is acceptable if a terminal board is provided as input.
@@ -73,7 +73,7 @@ def actions(board):
                 moves.append((i, j))
     # Return moves unless it is empty, then return 0
     return moves if moves else 0
-    #raise NotImplementedError
+    # raise NotImplementedError
 
 
 def result(board, action):
@@ -83,23 +83,30 @@ def result(board, action):
     The result function takes a “board” and an “action” as input, and should return a new board state, without modifying the original board.
 
     If action is not a valid action for the board, your program should raise an exception.
-    The returned board state should be the board that would result from taking the original input board, 
+    The returned board state should be the board that would result from taking the original input board,
     and letting the player whose turn it is make their move at the cell indicated by the input action.
     Importantly, the original board should be left unmodified: since Minimax will ultimately require considering
-    many different board states during its computation. This means that simply updating a cell in “board” 
+    many different board states during its computation. This means that simply updating a cell in “board”
     itself is not a correct implementation of the “result” function. You’ll likely want to make a deep copy
     of the board first before making any changes.
     """
-    result = board.copy()
-    avalibleactions = actions(board)   
-    print(action)
-   
-    for tuple in avalibleactions:
-        if action[0] is tuple[0] and action[1] is tuple[1]:
-            result[action[0]][action[1]] = "X"
-            return result
-        
-        
+
+    result = copy.deepcopy(board)
+    avalibleactions = actions(result)
+    # print(action)
+
+    i, j = action
+
+    result[i][j] = player(result)
+
+    return result
+
+    # return result
+    # for tuple in avalibleactions:
+    #    if action[0] is tuple[0] and action[1] is tuple[1]:
+    #        result[action[0]][action[1]] = player(result)
+    #        return result
+
     raise Exception("Sorry, can't go here")
 
 
@@ -107,6 +114,7 @@ def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
+
     def checkHorizontalWinner(board):
         for player in board:
             if len(set(player)) == 1:
@@ -117,33 +125,33 @@ def winner(board):
         for col in zip(*board):
             setcol = set()
             for i in range(len(board)):
-                setcol.add(board[i][col])
+                setcol.add(col[i])
             if len(setcol) == 1:
-                return player[0]
+                return list(setcol)[0]
         return -1
-    
+
     def checkDiagWinner(board):
         setdia = set([board[0][0], board[1][1], board[2][2]])
         setdia2 = set([board[0][2], board[1][1], board[2][0]])
         if len(setdia) == 1:
-            return setdia[0]
+            return list(setdia)[0]
         elif len(setdia2) == 1:
-            return setdia2[0]
+            return list(setdia2)[0]
         else:
             return -1
 
     horizontal = checkHorizontalWinner(board)
-    if horizontal is not -1:
+    if horizontal != -1:
         return horizontal
-    
+
     vertical = checkVerticalWinner(board)
-    if vertical is not -1:
+    if vertical != -1:
         return vertical
 
     dia = checkDiagWinner(board)
-    if dia is not -1:
+    if dia != -1:
         return dia
-    
+
     return None
 
 
@@ -151,31 +159,31 @@ def terminal(board):
     """
     Returns True if game is over, False otherwise.
 
-    The terminal function should accept a “board” as input, and return a boolean value 
+    The terminal function should accept a “board” as input, and return a boolean value
     indicating whether the game is over.
     If the game is over, either because someone has won the game or because all cells have been filled without anyone winning, the function should return “True”.
     Otherwise, the function should return “False” if the game is still in progress.
 
     """
-    if winner(board) is "O":
+    if winner(board) == "O":
         return True
-    elif winner(board) is "1":
+    elif winner(board) == "X":
         return True
     else:
         for i in range(len(board)):
             for j in range(len(board[0])):
-                if board[i][j] is EMPTY:
+                if board[i][j] == EMPTY:
                     return False
-        return True    
+        return True
 
 
 def score(board):
     """
     Returns 1 if X has won the game, -1 if O has won, 0 otherwise.
     """
-    if winner(board) is 'X':
+    if winner(board) == "X":
         return 1
-    elif winner(board) is 'O':
+    elif winner(board) == "O":
         return -1
     else:
         return 0
@@ -185,4 +193,58 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-    raise NotImplementedError
+
+    # This function returns the max value score from all available moves
+    def max_value(board):
+        # Return Score if board is terminal state
+        if terminal(board):
+            return score(board)
+
+        # Set v = to negative infinity
+        max_score = -INFINITY
+
+        # For all available actions:
+        for action in actions(board):
+            # Compare all scores to get maximum scores from the minimums
+            max_score = max(max_score, min_value(result(board, action)))
+
+        return max_score
+
+    # This function returns the minimum value score from all available moves
+    def min_value(board):
+        # Retrun score if board is in terminal state
+        if terminal(board):
+            return score(board)
+
+        # Set v = to positive infinity
+        min_score = INFINITY
+
+        # For all available actions,
+        for action in actions(board):
+            # Compare all scores to get minimum scores from the maximums
+            min_score = min(min_score, max_value(result(board, action)))
+
+        return min_score
+
+    # If player is 'X', maximize
+    if player(board) == "X":
+        # Find action with maximum score
+
+        # Uncomment below to print max_value for testing purposes
+        # print(max_value(board))
+        return
+
+    # If player is 'O', minimize
+    elif player(board) == "O":
+        # Find action with minimum score
+
+        # Uncomment below to print min_value for testing purposes
+        # print(str(min_value(board))
+        return
+
+    # Else there is no valid player
+    else:
+        raise Exception("Invalid player")
+
+
+# raise NotImplementedError
