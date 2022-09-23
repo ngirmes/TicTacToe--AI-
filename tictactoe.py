@@ -2,11 +2,7 @@
 Tic Tac Toe Player
 """
 
-from dbm import dumb
 from json.encoder import INFINITY
-import math
-from queue import Empty
-from ssl import VerifyFlags
 import copy
 
 X = "X"
@@ -73,7 +69,6 @@ def actions(board):
                 moves.append((i, j))
     # Return moves unless it is empty, then return 0
     return moves if moves else 0
-    # raise NotImplementedError
 
 
 def result(board, action):
@@ -90,23 +85,14 @@ def result(board, action):
     itself is not a correct implementation of the “result” function. You’ll likely want to make a deep copy
     of the board first before making any changes.
     """
-
     result = copy.deepcopy(board)
-    avalibleactions = actions(result)
-    # print(action)
-
-    i, j = action
-
-    result[i][j] = player(result)
-
-    return result
-
-    # return result
-    # for tuple in avalibleactions:
-    #    if action[0] is tuple[0] and action[1] is tuple[1]:
-    #        result[action[0]][action[1]] = player(result)
-    #        return result
-
+       
+    for x,y in actions(board):
+        if int(action[0]) is x and int(action[1]) is y:
+            result[action[0]][action[1]] = player(board)
+            return result
+        
+        
     raise Exception("Sorry, can't go here")
 
 
@@ -194,53 +180,39 @@ def minimax(board):
     Returns the optimal action for the current player on the board.
     """
 
-    # This function returns the max value score from all available moves
-    def max_value(board):
-        # Return Score if board is terminal state
-        if terminal(board):
-            return score(board)
-
-        # Set v = to negative infinity
-        max_score = -INFINITY
-
-        # For all available actions:
-        for action in actions(board):
-            # Compare all scores to get maximum scores from the minimums
-            max_score = max(max_score, min_value(result(board, action)))
-
-        return max_score
-
-    # This function returns the minimum value score from all available moves
-    def min_value(board):
-        # Retrun score if board is in terminal state
-        if terminal(board):
-            return score(board)
-
-        # Set v = to positive infinity
-        min_score = INFINITY
-
-        # For all available actions,
-        for action in actions(board):
-            # Compare all scores to get minimum scores from the maximums
-            min_score = min(min_score, max_value(result(board, action)))
-
-        return min_score
+    if terminal(board):
+        return score(board)
 
     # If player is 'X', maximize
     if player(board) == "X":
-        # Find action with maximum score
+        max_score = -INFINITY
+        moves = None
 
-        # Uncomment below to print max_value for testing purposes
-        # print(max_value(board))
-        return
+        # Find action with maximum score
+        for action in actions(board):
+            try:
+                playboard = result(board,action)
+                if score(playboard) > max_score:
+                    min_score = score(playboard)
+                    moves = action
+            except:
+                continue
+        return moves
 
     # If player is 'O', minimize
     elif player(board) == "O":
+        min_score = INFINITY
+        moves = None
         # Find action with minimum score
-
-        # Uncomment below to print min_value for testing purposes
-        # print(str(min_value(board))
-        return
+        for action in actions(board):
+            try:
+                playboard = result(board,action)
+                if score(playboard) < min_score:
+                    min_score = score(playboard)
+                    moves = action
+            except:
+                continue
+        return moves
 
     # Else there is no valid player
     else:
