@@ -44,7 +44,6 @@ def player(board):
             else:
                 continue
     return "O" if count_x > count_o else "X"
-    # raise NotImplementedError
 
 
 def actions(board):
@@ -76,23 +75,18 @@ def result(board, action):
     Returns the board that results from making move (i, j) on the board.
 
     The result function takes a “board” and an “action” as input, and should return a new board state, without modifying the original board.
-
-    If action is not a valid action for the board, your program should raise an exception.
-    The returned board state should be the board that would result from taking the original input board,
-    and letting the player whose turn it is make their move at the cell indicated by the input action.
-    Importantly, the original board should be left unmodified: since Minimax will ultimately require considering
-    many different board states during its computation. This means that simply updating a cell in “board”
-    itself is not a correct implementation of the “result” function. You’ll likely want to make a deep copy
-    of the board first before making any changes.
     """
+    
+    # the original board should be left unmodified
     result = copy.deepcopy(board)
-       
+    # The returned board state should be the board that would result from taking the original input board,
+    # and letting the player whose turn it is make their move at the cell indicated by the input action.   
     for x,y in actions(board):
         if int(action[0]) is x and int(action[1]) is y:
             result[action[0]][action[1]] = player(board)
             return result
         
-        
+    # If action is not a valid action for the board, your program should raise an exception.    
     raise Exception("Sorry, can't go here")
 
 
@@ -100,13 +94,14 @@ def winner(board):
     """
     Returns the winner of the game, if there is one.
     """
-
+    #inner funciton to check if we have a horizontal winner
     def checkHorizontalWinner(board):
         for player in board:
             if len(set(player)) == 1:
                 return player[0]
         return -1
-
+    
+    #inner function to check if we have a vertical winner
     def checkVerticalWinner(board):
         for col in zip(*board):
             setcol = set()
@@ -116,6 +111,7 @@ def winner(board):
                 return list(setcol)[0]
         return -1
 
+    #inner function to check if we have a diagonal winner
     def checkDiagWinner(board):
         setdia = set([board[0][0], board[1][1], board[2][2]])
         setdia2 = set([board[0][2], board[1][1], board[2][0]])
@@ -125,19 +121,26 @@ def winner(board):
             return list(setdia2)[0]
         else:
             return -1
-
+        
+    # variable will return -1 if we don't have a winner or X or 0 to represent the winner
     horizontal = checkHorizontalWinner(board)
     if horizontal != -1:
+        # return the winner
         return horizontal
 
+    # variable will return -1 if we don't have a winner or X or 0 to represent the winner
     vertical = checkVerticalWinner(board)
     if vertical != -1:
+        # return the winner
         return vertical
 
+    # variable will return -1 if we don't have a winner or X or 0 to represent the winner
     dia = checkDiagWinner(board)
     if dia != -1:
+        # return the winner
         return dia
-
+    
+    # return None if we have no winner
     return None
 
 
@@ -147,19 +150,23 @@ def terminal(board):
 
     The terminal function should accept a “board” as input, and return a boolean value
     indicating whether the game is over.
-    If the game is over, either because someone has won the game or because all cells have been filled without anyone winning, the function should return “True”.
+    If the game is over, either because someone has won the game or because all cells have 
+    been filled without anyone winning, the function should return “True”.
     Otherwise, the function should return “False” if the game is still in progress.
 
     """
+    # we end the game if we have a winner
     if winner(board) == "O":
         return True
     elif winner(board) == "X":
         return True
     else:
+        # if we don't have a winner we check the board if all the spots are not empty we return false
         for i in range(len(board)):
             for j in range(len(board[0])):
                 if board[i][j] == EMPTY:
                     return False
+        # if we have no empty slots then the game is over        
         return True
 
 
@@ -179,21 +186,25 @@ def minimax(board):
     """
     Returns the optimal action for the current player on the board.
     """
-
+    # check if game is over then we have no moves left
     if terminal(board):
         return score(board)
 
-    # If player is 'X', maximize
+    # If player is 'X', we will maximize
     if player(board) == "X":
+        # start with lowest so we can get the minumum score
         max_score = -INFINITY
+        # initialize move so we can return the move with the move the ai will take
         moves = None
 
         # Find action with maximum score
         for action in actions(board):
             try:
+                # get board with possible move
                 playboard = result(board,action)
+                # if score is higher than current score we swap results and the move
                 if score(playboard) > max_score:
-                    min_score = score(playboard)
+                    max_score = score(playboard)
                     moves = action
             except:
                 continue
@@ -201,12 +212,16 @@ def minimax(board):
 
     # If player is 'O', minimize
     elif player(board) == "O":
+        # start with lowest so we can get the maximum score
         min_score = INFINITY
+        # initialize move so we can return the move with the move the ai will take
         moves = None
         # Find action with minimum score
         for action in actions(board):
             try:
+                # get board with possible move
                 playboard = result(board,action)
+                # if score is lower than current score we swap results and the move
                 if score(playboard) < min_score:
                     min_score = score(playboard)
                     moves = action
@@ -217,6 +232,3 @@ def minimax(board):
     # Else there is no valid player
     else:
         raise Exception("Invalid player")
-
-
-# raise NotImplementedError
